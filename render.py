@@ -1,5 +1,6 @@
 import docx
 from docx import document
+from docx.enum.text import *
 from tkinter import messagebox
 import conf
 
@@ -20,10 +21,19 @@ def render(data: list):
         for student in room:
             cell = table.cell(row, col)
             p = cell.add_paragraph()
-            p.add_run('座位号 %s\n' % str(i).rjust(conf.gen_i_dig, '0'))
-            p.add_run('%s %s号\n' % (student[conf.key_class], student[conf.key_sid]))
-            p.add_run('%s\n' % student[conf.key_name])
-            p.add_run('考号 %s\n' % student[conf.key_eid])
+            l = p.add_run('座位号 %s\n' % str(i).rjust(conf.gen_i_dig, '0'))
+            l.font.size = 9
+            p = cell.add_paragraph()
+            l = p.add_run('%s %s号\n' % (student[conf.key_class], student[conf.key_sid]))
+            l.font.size = 9
+            p.alignment = 
+            p = cell.add_paragraph()
+            l = p.add_run('%s\n' % student[conf.key_name])
+            l.font.size = 12
+            l.font.bold = 1
+            p = cell.add_paragraph()
+            l = p.add_run('考号 %s\n' % student[conf.key_eid])
+            l.font.size = 9
             row += orient
             if row < 0:
                 row = 0
