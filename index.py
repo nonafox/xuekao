@@ -3,43 +3,47 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
-from conf import *
-import tkdialog
 import csv
 import os
-import shutil
+import random
+import conf
+import util
+import tkdialog
+import render
 
 def save_table():
-    with open(path_students, 'w', encoding = 'utf-8') as file:
+    with open(conf.path_students, 'w', encoding = 'utf-8') as file:
         file.truncate(0)
-        writer = csv.DictWriter(file, columns, lineterminator = '\n')
+        writer = csv.DictWriter(file, conf.columns, lineterminator='\n')
         writer.writeheader()
-        writer.writerows(students)
+        writer.writerows(conf.students)
 
 def window_main():
     window = Tk()
-    window.title(window_title)
+    def window_title():
+        window.title(f'{conf.title} - {os.path.join(os.getcwd(), conf.path_students)}')
+    window_title()
     window.resizable(0, 0)
 
     table_frame = Frame(window)
-    table_frame.grid(row = 1, column = 1, rowspan = 100)
-    scrollbar_y = Scrollbar(table_frame, orient = VERTICAL)
+    table_frame.grid(row=1, column=1, rowspan=100)
+    scrollbar_y = Scrollbar(table_frame, orient=VERTICAL)
     table = ttk.Treeview(
-        master = table_frame,
-        height = 20,
-        columns = columns,
-        show = 'headings',
-        yscrollcommand = scrollbar_y.set,
+        master=table_frame,
+        height=20,
+        columns=conf.columns,
+        show='headings',
+        yscrollcommand=scrollbar_y.set,
     )
-    for i, col in enumerate(columns):
-        table.heading(col, text = col)
-        table.column(col, width = columns_width[i], anchor = CENTER)
-    scrollbar_y.config(command = table.yview)
-    scrollbar_y.pack(side = RIGHT, fill = Y)
-    table.pack(fill = BOTH, expand = 1)
-    cbox = ttk.Combobox(window, state = 'readonly')
+    for i, col in enumerate(conf.columns):
+        table.heading(col, text=col)
+        table.column(col, width=conf.columns_width[i], anchor=CENTER)
+    scrollbar_y.config(command=table.yview)
+    scrollbar_y.pack(side=RIGHT, fill=Y)
+    table.pack(fill=BOTH, expand=1)
+    cbox = ttk.Combobox(window, state='readonly')
     def update_cbox():
-        cbox['value'] = (txt_all_classes, ) + tuple(classes)
+        cbox['value'] = (conf.txt_all_classes, ) + tuple(conf.classes)
     update_cbox()
     cbox.current(0)
     def clear_table():
@@ -49,23 +53,23 @@ def window_main():
     def update_table(_ = None):
         selected = cbox.get()
         clear_table()
-        for student in students:
-            if selected == '' or selected == txt_all_classes or student[key_class] == selected:
-                table.insert('', END, values = list(student.values()))
+        for student in conf.students:
+            if selected == '' or selected == conf.txt_all_classes or student[conf.key_class] == selected:
+                table.insert('', END, values=list(student.values()))
     update_table()
 
     cbox.bind('<<ComboboxSelected>>', update_table)
-    cbox.grid(row = 1, column = 3, sticky = 'NW')
+    cbox.grid(row=1, column=3)
     def add_class():
         def callback(get: str):
-            classes.append(get)
+            conf.classes.append(get)
             update_cbox()
             cbox.current(len(cbox['value']) - 1)
             update_table()
         tkdialog.ask_input('请输入班级名称', callback)
     def add_student():
         curr_class = cbox.get()
-        class_spec = curr_class != txt_all_classes
+        class_spec = curr_class != conf.txt_all_classes
         def callback(get: str):
             for line in get.split('\n'):
                 line = line.strip()
@@ -73,66 +77,70 @@ def window_main():
                     line = line.split(' ')
                     if class_spec:
                         line.insert(0, curr_class)
-                    line = dict(zip(columns, line))
-                    students.append(line)
-                    if line[key_class] not in classes:
-                        classes.append(line[key_class])
+                    line = dict(zip(conf.columns, line))
+                    conf.students.append(line)
+                    if line[conf.key_class] not in conf.classes:
+                        conf.classes.append(line[conf.key_class])
                     update_cbox()
             save_table()
             update_cbox()
             update_table()
-        tkdialog.ask_input(f'请输入学生信息（每行一个学生，格式为“%s{key_sid} {key_name} {key_eid}' % ('' if class_spec else f'{key_class} '), callback, 1)
+        tkdialog.ask_input(f'请输入学生信息（每行一个学生，格式为“%s{conf.key_sid} {conf.key_name} {conf.key_eid}”）' % ('' if class_spec else f'{conf.key_class} '), callback, 1)
     def del_student():
         if messagebox.askyesno('确认', '确定要删除选中学生吗？'):
-            del students[table.index(table.selection())]
+            del conf.students[table.index(table.selection())]
             save_table()
             update_table()
     def del_class():
         curr_class = cbox.get()
         if messagebox.askyesno('确认', '确定要删除或清空当前班级吗？'):
-            k = len(students) - 1
+            k = len(conf.students) - 1
             while k >= 0:
-                v = students[k]
-                if curr_class == txt_all_classes or v[key_class] == curr_class:
-                    del students[k]
+                v = conf.students[k]
+                if curr_class == conf.txt_all_classes or v[conf.key_class] == curr_class:
+                    del conf.students[k]
                 k -= 1
             save_table()
-            if curr_class != txt_all_classes:
-                del classes[classes.index(curr_class)]
+            if curr_class != conf.txt_all_classes:
+                del conf.classes[conf.classes.index(curr_class)]
             update_cbox()
             cbox.current(0)
             update_table()
     def open_table():
-        os.startfile(os.path.join(os.getcwd(), path_students))
-    def reload_data(path = path_students_default):
+        os.startfile(os.path.join(os.getcwd(), conf.path_students))
+    def reload_data(path = conf.path_students_default):
         try:
-            shutil.copy(path, path_students)
-            load_data()
+            conf.load_data(path)
             update_cbox()
             cbox.current(0)
             update_table()
-        except:
-            messagebox.showerror('错误', '导入文件可能格式有误！')
+            window_title()
+        except Exception as e:
+            messagebox.showerror('错误', f'打开文件失败，可能格式有误：{str(e)}')
     def reload_data_select():
-        messagebox.showinfo('提示', f'请选择具有“{key_class} {key_sid} {key_name} {key_eid}”字段的 .csv 格式的表格文件！')
+        messagebox.showinfo('提示', f'请选择具有“{conf.key_class} {conf.key_sid} {conf.key_name} {conf.key_eid}”字段的 .csv 格式的表格文件！')
         file = filedialog.askopenfilename()
         if file != '':
             reload_data(file)
-    button_add_class = Button(window, text='添加班级', command=add_class)
-    button_add_class.grid(row = 2, column = 3, sticky = 'NW')
-    button_add_student = Button(window, text='添加学生', command=add_student)
-    button_add_student.grid(row = 3, column = 3, sticky = 'NW')
-    button_del_student = Button(window, text='删除所选学生', command=del_student)
-    button_del_student.grid(row = 4, column = 3, sticky = 'NW')
-    button_del_class = Button(window, text='删除当前班级', command=del_class)
-    button_del_class.grid(row = 5, column = 3, sticky = 'NW')
-    button_del_class = Button(window, text='用其他软件编辑表格', command=open_table)
-    button_del_class.grid(row = 6, column = 3, sticky = 'NW')
-    button_del_class = Button(window, text='导入数据', command=reload_data_select)
-    button_del_class.grid(row = 7, column = 3, sticky = 'NW')
-    button_del_class = Button(window, text='导入测试数据', command=reload_data)
-    button_del_class.grid(row = 8, column = 3, sticky = 'NW')
-
+    def gen():
+        data = conf.students
+        random.shuffle(data)
+        data = util.split_array(data, conf.gen_rows * conf.gen_cols)
+        try:
+            render.render(data)
+            os.startfile(os.path.join(os.getcwd(), conf.path_out))
+        except PermissionError:
+            messagebox.showerror('错误', '文件写入失败，请检查其是否被占用！')
+        except Exception as e:
+            messagebox.showerror('错误', f'文件写入失败，原因未知：\n{str(e)}')
+    Button(window, text='添加班级', command=add_class).grid(row=2, column=3)
+    Button(window, text='添加学生', command=add_student).grid(row=3, column=3)
+    Button(window, text='删除所选学生', command=del_student).grid(row=4, column=3)
+    Button(window, text='删除当前班级', command=del_class).grid(row=5, column=3)
+    Button(window, text='用其他软件编辑表格', command=open_table).grid(row=6, column=3)
+    Button(window, text='打开数据表', command=reload_data_select).grid(row=8, column=3)
+    Button(window, text='打开测试数据表', command=reload_data).grid(row=9, column=3)
+    Button(window, text='生成考试座位表', command=gen).grid(row=10, column=3)
     window.mainloop()
 
 window_main()
