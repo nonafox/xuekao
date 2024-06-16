@@ -1,4 +1,5 @@
 import csv
+import os
 
 title = '广州市西关外国语学校 高一4班 谭镇洋 学考项目 - 考试座位表生成工具'
 
@@ -15,6 +16,9 @@ gen_rows = 6
 gen_cols = 5
 gen_i_dig = len(str(gen_rows * gen_cols))
 
+paths_to_check = ['./data/out']
+for path in paths_to_check:
+    os.makedirs(path, exist_ok=1)
 path_students = './data/students.csv'
 path_students_default = './data/students_default.csv'
 path_out_template = './data/out_template.docx'
