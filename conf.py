@@ -1,7 +1,7 @@
 import csv
 import os
 
-title = '广州市西关外国语学校 高一4班 谭镇洋 学考项目 - 考试座位表生成工具'
+title = '广州市西关外国语学校 高二1班 谭镇洋 - 考试座位表生成工具'
 
 key_class = '班级'
 key_sid = '学号'
@@ -19,10 +19,13 @@ gen_i_dig = len(str(gen_rows * gen_cols))
 paths_to_check = ['./data/out']
 for path in paths_to_check:
     os.makedirs(path, exist_ok=1)
-path_students = './data/students.csv'
-path_students_default = './data/students_default.csv'
+path_students_default = './data/students.csv'
+path_students = path_students_default
+path_students_test = './data/students_default.csv'
 path_out_template = './data/out_template.docx'
 path_out = './data/out/tables.docx'
+
+about_url = 'https://github.com/nonafox/xuekao/blob/master/README.md'
 
 students = []
 classes = []

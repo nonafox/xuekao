@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
+import sv_ttk
 import csv
 import os
 import random
@@ -10,6 +11,7 @@ import conf
 import util
 import tkdialog
 import render
+import webbrowser
 
 def save_table():
     with open(conf.path_students, 'w', encoding = 'utf-8') as file:
@@ -20,14 +22,15 @@ def save_table():
 
 def window_main():
     window = Tk()
+
     def window_title():
         window.title(f'{conf.title} - {os.path.join(os.getcwd(), conf.path_students)}')
     window_title()
     window.resizable(0, 0)
 
     table_frame = Frame(window)
-    table_frame.grid(row=1, column=1, rowspan=100)
-    scrollbar_y = Scrollbar(table_frame, orient=VERTICAL)
+    table_frame.grid(row=1, column=2, rowspan=100)
+    scrollbar_y = ttk.Scrollbar(table_frame, orient=VERTICAL)
     table = ttk.Treeview(
         master=table_frame,
         height=20,
@@ -59,7 +62,7 @@ def window_main():
     update_table()
 
     cbox.bind('<<ComboboxSelected>>', update_table)
-    cbox.grid(row=1, column=3)
+    cbox.grid(row=1, column=1)
     def add_class():
         def callback(get: str):
             conf.classes.append(get)
@@ -108,18 +111,30 @@ def window_main():
             update_table()
     def open_table():
         os.startfile(os.path.join(os.getcwd(), conf.path_students))
-    def reload_data(path = conf.path_students_default):
+    def new_table():
+        try:
+            file = filedialog.asksaveasfilename(filetypes=[('表格文件', '*.csv')], defaultextension='.csv')
+            if file != '':
+                with open(file, 'w'):
+                    pass
+                reload_data(file)
+        except Exception as e:
+            messagebox.showerror('错误', f'新建文件失败，文件名可能被占用：{str(e)}')
+    def reload_data(path = conf.path_students_test):
         try:
             conf.load_data(path)
             update_cbox()
             cbox.current(0)
             update_table()
             window_title()
+            messagebox.showinfo('提示', '已打开！')
         except Exception as e:
             messagebox.showerror('错误', f'打开文件失败，可能格式有误：{str(e)}')
+    def reload_data_default():
+        reload_data(conf.path_students_default)
     def reload_data_select():
         messagebox.showinfo('提示', f'请选择具有“{conf.key_class} {conf.key_sid} {conf.key_name} {conf.key_eid}”字段的 .csv 格式的表格文件！')
-        file = filedialog.askopenfilename()
+        file = filedialog.askopenfilename(filetypes=[('表格文件', '*.csv'), ('所有文件', '*.*')])
         if file != '':
             reload_data(file)
     def gen():
@@ -133,14 +148,28 @@ def window_main():
             messagebox.showerror('错误', '文件写入失败，请检查其是否被占用！')
         except Exception as e:
             messagebox.showerror('错误', f'文件写入失败，原因未知：\n{str(e)}')
-    Button(window, text='添加班级', command=add_class).grid(row=2, column=3)
-    Button(window, text='添加学生', command=add_student).grid(row=3, column=3)
-    Button(window, text='删除所选学生', command=del_student).grid(row=4, column=3)
-    Button(window, text='删除当前班级', command=del_class).grid(row=5, column=3)
-    Button(window, text='用其他软件编辑表格', command=open_table).grid(row=6, column=3)
-    Button(window, text='打开数据表', command=reload_data_select).grid(row=8, column=3)
-    Button(window, text='打开测试数据表', command=reload_data).grid(row=9, column=3)
-    Button(window, text='生成考试座位表', command=gen).grid(row=10, column=3)
+    def about():
+        webbrowser.open(conf.about_url)
+    
+    ttk.Button(window, text='添加班级', command=add_class).grid(row=2, column=1)
+    ttk.Button(window, text='添加学生', command=add_student).grid(row=3, column=1)
+    ttk.Button(window, text='删除所选学生', command=del_student).grid(row=4, column=1)
+    ttk.Button(window, text='删除当前班级', command=del_class).grid(row=5, column=1)
+    ttk.Button(window, text='生成考试座位表', command=gen).grid(row=6, column=1)
+
+    menu = Menu(type='menubar', tearoff=False)
+    menu_file = Menu(menu, tearoff=False)
+    menu.add_cascade(label='文件', menu=menu_file)
+    menu_file.add_command(label='新建花名册', command=new_table)
+    menu_file.add_command(label='打开默认花名册', command=reload_data_default)
+    menu_file.add_command(label='打开测试花名册', command=reload_data)
+    menu_file.add_command(label='打开其他花名册', command=reload_data_select)
+    menu_edit = Menu(menu, tearoff=False)
+    menu.add_cascade(label='编辑', menu=menu_edit)
+    menu_edit.add_command(label='用其他软件编辑', command=open_table)
+    menu.add_command(label='关于', accelerator='A', command=about)
+    window.config(menu=menu)
+    sv_ttk.set_theme('light')
     window.mainloop()
 
 window_main()

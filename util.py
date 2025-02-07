@@ -1,3 +1,13 @@
+import tkinter
+from tkinter import *
+from tkinter import ttk
+
+def window_center(window: Tk):
+    width = window.winfo_reqwidth()
+    height = window.winfo_reqheight()
+    screenwidth = window.winfo_screenwidth()
+    screenheight = window.winfo_screenheight()
+    window.geometry('+%d+%d' % ((screenwidth - width) / 2, (screenheight - height) / 2))
 def split_array(arr: list, chunk_size: int):
     return [arr[i:i + chunk_size] for i in range(0, len(arr), chunk_size)]
 def str_select(str1: str, str2: str):
