@@ -6,7 +6,6 @@ from tkinter import filedialog
 import sv_ttk
 import csv
 import os
-import random
 import conf
 import util
 import tkdialog
@@ -138,12 +137,11 @@ def window_main():
         if file != '':
             reload_data(file)
     def gen():
-        data = conf.students
-        random.shuffle(data)
-        data = util.split_array(data, conf.gen_rows * conf.gen_cols)
         try:
-            render.render(data)
-            os.startfile(os.path.join(os.getcwd(), conf.path_out))
+            render.render(conf.students)
+            update_table()
+            os.startfile(os.path.join(os.getcwd(), conf.path_out_1))
+            os.startfile(os.path.join(os.getcwd(), conf.path_out_2))
         except PermissionError:
             messagebox.showerror('错误', '文件写入失败，请检查其是否被占用！')
         except Exception as e:
