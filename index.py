@@ -99,6 +99,8 @@ def window_main():
             shutil.copyfile(temp_dir, ori_dir)
             os.remove(temp_dir)
             reload_data(conf.path_students)
+        else:
+            os.remove(temp_dir)
     def new_table():
         try:
             file = filedialog.asksaveasfilename(filetypes=[('花名册文件', f'*{conf.file_ext}')], defaultextension=conf.file_ext)
