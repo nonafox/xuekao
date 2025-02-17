@@ -4,7 +4,7 @@ from tkinter import ttk
 import sv_ttk
 import util
 
-def ask_input(prompt = '', callback = lambda val: None, wrap = 0):
+def ask_input(prompt = '', callback = lambda val: None, wrap = 0, default = ''):
     window = Tk()
     window.title('输入')
     window.resizable(False, False)
@@ -12,8 +12,10 @@ def ask_input(prompt = '', callback = lambda val: None, wrap = 0):
     label.grid(row=1, column=0, columnspan=3)
     if wrap:
         entry = Text(window, width=30, height=5)
+        entry.insert(END, default)
     else:
         entry = ttk.Entry(window, width=30)
+        entry.insert(END, default)
     entry.grid(row=2, column=1, columnspan=2)
     def confirm():
         if wrap:

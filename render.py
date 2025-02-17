@@ -20,7 +20,7 @@ def cell_center(cell, bold = False):
 def cell_format(cell, bold = False):
     cell_center(cell, bold)
 
-def render_1(data: list):
+def render_1(data: list, new_classes: list):
     doc = docx.Document()
     assert isinstance(doc, document.Document)
     sec = doc.sections[0]
@@ -33,14 +33,12 @@ def render_1(data: list):
     doc.styles['Normal'].font.name = '宋体'
     
     virgin = 1
-    j = 0
-    gen_j_dig = len(str(len(data)))
-    for room in data:
+    for j, room in enumerate(data):
         if virgin:
             virgin = 0
         else:
             doc.add_page_break()
-        title = doc.add_paragraph('考场 %s      人数 %d' % (str(j + 1).rjust(gen_j_dig, '0'), len(room)))
+        title = doc.add_paragraph('【考场】%s      人数 %d' % (new_classes[j], len(room)))
         title.runs[0].font.size = Pt(15)
         title.runs[0].font.bold = 1
         title.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
@@ -56,7 +54,7 @@ def render_1(data: list):
             cell.paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
             p = cell.add_paragraph()
             p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-            l = p.add_run('%s %s号\n' % (student[conf.key_class], util.str_select(str(student[conf.key_sid]), '？')))
+            l = p.add_run('【原班级】%s %s号\n' % (student[conf.key_class], util.str_select(str(student[conf.key_sid]), '？')))
             l.font.size = Pt(9)
             l = p.add_run('%s\n' % student[conf.key_name])
             l.font.size = Pt(12)
@@ -75,7 +73,7 @@ def render_1(data: list):
             i += 1
         j += 1
     doc.save(conf.path_out_1)
-def render_2(data: dict):
+def render_2(data: dict, new_classes: list):
     doc = docx.Document()
     assert isinstance(doc, document.Document)
     sec = doc.sections[0]
@@ -91,35 +89,39 @@ def render_2(data: dict):
             virgin = 0
         else:
             doc.add_page_break()
-        title = doc.add_paragraph(cl_name)
+        title = doc.add_paragraph(f'【班级】{cl_name}')
         title.runs[0].font.size = Pt(15)
         title.runs[0].font.bold = 1
         title.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-        table = doc.add_table(0, len(conf.columns))
+        table = doc.add_table(0, len(conf.columns_classes))
         table.alignment = WD_TABLE_ALIGNMENT.CENTER
         table.style = 'Table Grid'
         header = table.add_row()
-        for j, col in enumerate(conf.columns):
+        for j, col in enumerate(conf.columns_classes):
             cell = header.cells[j]
             cell.text = col
             cell_format(cell, True)
         
         for student in cl:
             row = table.add_row()
-            for j, col in enumerate(conf.columns):
+            for j, col in enumerate(conf.columns_classes):
                 cell = row.cells[j]
-                cell.text = student[col]
+                if col != conf.key_new_class:
+                    cell.text = student[col]
+                else:
+                    cell.text = new_classes[int(student[col]) - 1]
                 cell_format(cell)
     doc.save(conf.path_out_2)
 
-def render(data: list):
+def render(data: list, new_classes: list):
     data_splited = data.copy()
     random.shuffle(data_splited)
     data_splited = util.split_array(data_splited, conf.gen_rows * conf.gen_cols)
     for i, cl in enumerate(data_splited):
-        for student in cl:
+        for j, student in enumerate(cl):
             student[conf.key_new_class] = str(i + 1)
-    render_1(data_splited)
+            student[conf.key_new_class_sid] = str(j + 1)
+    render_1(data_splited, new_classes)
 
     data_classified = {}
     for student in data:
@@ -127,4 +129,4 @@ def render(data: list):
             data_classified[student[conf.key_class]] = []
         cl = data_classified[student[conf.key_class]]
         cl.append(student)
-    render_2(data_classified)
+    render_2(data_classified, new_classes)
