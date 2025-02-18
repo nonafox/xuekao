@@ -6,6 +6,7 @@ from tkinter import filedialog
 import sv_ttk
 import csv
 import os
+import re
 import shutil
 import conf
 import sv_ttk.theme
@@ -40,10 +41,11 @@ def window_main():
             for line in get.split('\n'):
                 line = line.strip()
                 if line != '':
+                    line = re.sub('(\s)+', r'\1', line)
                     line = line.split(' ')
                     if class_spec:
                         line.insert(0, curr_class)
-                    line = dict(zip(conf.columns_classes, line))
+                    line = dict(zip(conf.columns_classes_inputable, line))
                     conf.students.append(line)
                     if line[conf.key_class] not in conf.classes:
                         conf.classes.append(line[conf.key_class])

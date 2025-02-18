@@ -19,6 +19,7 @@ txt_all_classes = '【所有班级】'
 txt_new_classes_list = '考场列表'
 
 columns_classes = [key_class, key_sid, key_name, key_eid, key_new_class, key_new_class_sid]
+columns_classes_inputable = [key_class, key_sid, key_name, key_eid]
 columns_classes_width = [100, 100, 200, 300, 100, 100]
 columns_new_classes = [key_new_class_id, key_new_class_name]
 columns_new_classes_width = [100, 200]
