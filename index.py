@@ -103,7 +103,7 @@ def window_main():
         temp_dir = os.path.join(os.getcwd(), conf.path_students_edit_temp)
         shutil.copyfile(ori_dir, temp_dir)
         os.startfile(temp_dir)
-        if messagebox.askyesno('编辑花名册', f'请在弹出的文件中编辑，编辑完成后将其关闭，点击“是”\n\n★注意应使用UTF-8编码保存！\n★表中“{conf.key_new_class}”和“{conf.key_new_class_sid}”不需要填写'):
+        if messagebox.askyesno('编辑花名册', f'请在弹出的文件中编辑，编辑完成后将其关闭，点击“是”\n\n★表中“{conf.key_new_class}”和“{conf.key_new_class_sid}”不需要填写'):
             shutil.copyfile(temp_dir, ori_dir)
             os.remove(temp_dir)
             reload_data(conf.path_students)
