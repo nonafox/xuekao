@@ -130,7 +130,7 @@ def window_main():
     def reload_data_default():
         reload_data(conf.path_students_default)
     def reload_data_select():
-        file = filedialog.askopenfilename(filetypes=[('表格文件', f'*{conf.file_ext}'), ('所有文件', '*.*')])
+        file = filedialog.askopenfilename(filetypes=[('花名册文件', f'*{conf.file_ext}'), ('所有文件', '*.*')])
         if file != '':
             reload_data(file)
     def gen():
