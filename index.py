@@ -29,6 +29,9 @@ def save_table():
 def window_main():
     def add_class():
         def callback(get: str):
+            if get in conf.classes:
+                messagebox.showerror('错误', '已存在同名班级！')
+                return
             conf.classes.append(get)
             update_cbox()
             cbox.current(len(cbox['value']) - 1)
@@ -41,7 +44,7 @@ def window_main():
             for line in get.split('\n'):
                 line = line.strip()
                 if line != '':
-                    line = re.sub('(\s)+', r'\1', line)
+                    line = re.sub('(\\s)+', r'\1', line)
                     line = line.split(' ')
                     if class_spec:
                         line.insert(0, curr_class)
@@ -56,7 +59,7 @@ def window_main():
         tkdialog.ask_input(f'请输入学生信息（每行一个学生，格式为“%s{conf.key_sid} {conf.key_name} {conf.key_eid}”）' % ('' if class_spec else f'{conf.key_class} '), callback, 1)
     def del_student():
         if messagebox.askyesno('确认', '确定要删除选中学生吗？'):
-            del conf.students[curr_table.index(curr_table.selection())]
+            del conf.students[curr_table_indexes[curr_table.index(curr_table.selection())]]
             save_table()
             update_table()
     def del_class():
@@ -76,6 +79,9 @@ def window_main():
             update_table()
     def add_new_class():
         def callback(get: str):
+            if get in conf.new_classes:
+                messagebox.showerror('错误', '已存在同名考场！')
+                return
             conf.new_classes.append(get)
             save_table()
             update_table()
@@ -97,7 +103,7 @@ def window_main():
         temp_dir = os.path.join(os.getcwd(), conf.path_students_edit_temp)
         shutil.copyfile(ori_dir, temp_dir)
         os.startfile(temp_dir)
-        if messagebox.askyesno('编辑花名册', '请在弹出的文件中编辑，编辑完成后将其关闭，点击“是”'):
+        if messagebox.askyesno('编辑花名册', f'请在弹出的文件中编辑，编辑完成后将其关闭，点击“是”\n\n★注意应使用UTF-8编码保存！\n★表中“{conf.key_new_class}”和“{conf.key_new_class_sid}”不需要填写'):
             shutil.copyfile(temp_dir, ori_dir)
             os.remove(temp_dir)
             reload_data(conf.path_students)
@@ -107,7 +113,7 @@ def window_main():
         try:
             file = filedialog.asksaveasfilename(filetypes=[('花名册文件', f'*{conf.file_ext}')], defaultextension=conf.file_ext)
             if file != '':
-                with open(file, 'w'):
+                with open(file, 'w', encoding = 'utf-8'):
                     pass
                 reload_data(file)
         except Exception as e:
@@ -208,6 +214,7 @@ def window_main():
         yscrollcommand=scrollbar_y.set
     )
     curr_table = table_1
+    curr_table_indexes = []
     for i, col in enumerate(conf.columns_classes):
         table_1.heading(col, text=col)
         table_1.column(col, width=conf.columns_classes_width[i], anchor=CENTER)
@@ -222,7 +229,8 @@ def window_main():
         for o in obj:
             curr_table.delete(o)
     def update_table(_ = None):
-        nonlocal curr_table
+        nonlocal curr_table, curr_table_indexes
+        curr_table_indexes.clear()
         selected = cbox.get()
         curr_table.pack_forget()
         if selected == conf.txt_new_classes:
@@ -236,14 +244,16 @@ def window_main():
         if selected == conf.txt_new_classes:
             for i, cl in enumerate(conf.new_classes):
                 curr_table.insert('', END, values=[i + 1, cl])
+                curr_table_indexes.append(i)
         else:
             if selected == conf.txt_all_classes:
                 btn_del_class.config(text='清空所有学生和班级')
             else:
                 btn_del_class.config(text='删除当前班级')
-            for student in conf.students:
+            for i, student in enumerate(conf.students):
                 if selected == '' or selected == conf.txt_all_classes or student[conf.key_class] == selected:
                     curr_table.insert('', END, values=list(student.values()))
+                    curr_table_indexes.append(i)
         dn = util.count_diff_new_classes()
         if dn > 0:
             number_tip_label.config(text=f'★当前考场数量不足，请再添加{dn}个考场！')

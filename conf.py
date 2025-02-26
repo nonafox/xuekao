@@ -1,6 +1,8 @@
 import csv
 import os
+import shutil
 from docx.shared import *
+from tkinter import messagebox
 
 title = '广州市西关外国语学校 高二1班 谭镇洋 - 考试座位表生成工具'
 
@@ -37,7 +39,8 @@ file_edit_outside_ext = '.csv'
 file_out_ext = '.docx'
 path_students_default = f'./data/students{file_ext}'
 path_students = path_students_default
-path_students_test = f'./data/students_default{file_ext}'
+path_students_initial = f'./data/students_initial{file_ext}'
+path_students_test = f'./data/students_test{file_ext}'
 path_students_edit_temp = f'./data/students_edit_temp{file_edit_outside_ext}'
 path_out_1 = f'./data/out/tables{file_out_ext}'
 path_out_2 = f'./data/out/classified_tables{file_out_ext}'
@@ -54,18 +57,29 @@ def load_data(path = path_students):
     new_classes = []
     path_students = path
 
-    with open(path_students, 'r', encoding='utf-8') as file:
-        file.readline()
-        while True:
-            new_class = file.readline().strip()
-            if new_class != '':
-                new_classes.append(new_class)
-            else:
-                break
-        
-        reader = csv.DictReader(file)
-        for student in reader:
-            students.append(student.copy())
-            if student[key_class] not in classes:
-                classes.append(student[key_class])
+    def openit(switch_encoding = False):
+        with open(path_students, 'r', encoding='utf-8' if not switch_encoding else 'gbk') as file:
+            file.readline()
+            while True:
+                new_line = file.readline().strip().strip(',').strip()
+                if new_line != '':
+                    new_classes.append(new_line)
+                else:
+                    break
+            
+            reader = csv.DictReader(file)
+            for student in reader:
+                students.append(student.copy())
+                if student[key_class] not in classes:
+                    classes.append(student[key_class])
+
+    try:
+        openit()
+    except Exception as e:
+        try:
+            openit(True)
+        except:
+            messagebox.showerror('错误', f'读取文件失败，可能出现编码错误：{str(e)}')
+            shutil.copyfile(path_students_initial, path_students_default)
+            load_data()
 load_data()
